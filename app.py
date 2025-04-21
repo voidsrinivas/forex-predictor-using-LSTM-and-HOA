@@ -6,7 +6,7 @@ import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 
 # Load the optimized LSTM model
-model = tf.keras.models.load_model("optimized_lstm_currency_model.h5")
+model = tf.keras.models.load_model("optimized_lstm_currency_model.keras")
 
 # Streamlit UI for input and predictions
 def predict_currency():
@@ -22,12 +22,12 @@ def predict_currency():
 
     # Download data based on user input
     currency_data = yf.download(currency_ticker, start=start_date, end=end_date, interval='1d')
-    currency_data = currency_data[['Adj Close']].dropna()
+    currency_data = currency_data[['Close']].dropna()
 
     if len(currency_data) > 60:  # Ensure enough data for 60-day window
         # Preprocess data for prediction
         scaler = MinMaxScaler(feature_range=(0, 1))
-        scaled_data = scaler.fit_transform(currency_data[['Adj Close']].values)
+        scaled_data = scaler.fit_transform(currency_data.values)
 
         # Prepare sliding windows for predictions
         X_inputs = []
@@ -40,7 +40,7 @@ def predict_currency():
         predicted_prices = scaler.inverse_transform(predictions).flatten()  # Reverse scaling to get actual prices
 
         # Prepare data for the table and chart
-        actual_prices = currency_data['Adj Close'].values[60:]  # Actual prices from the 60th day onward
+        actual_prices = currency_data.values[60:].flatten()  # Actual prices from the 60th day onward
         dates = currency_data.index[60:].date  # Dates corresponding to predictions
         comparison_data = pd.DataFrame({
             "Date": dates,
